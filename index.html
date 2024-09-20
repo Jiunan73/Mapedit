@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="./js/vue.js"></script>
+  <style>
+    #app {
+      font-family: Avenir, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-align: center;
+      color: #2c3e50;
+      margin-top: 60px;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      max-width: 100%;
+      height: 80vh;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .sidebar {
+      width: 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: fixed;
+      top: 260px;
+      right: 40px;
+    }
+
+    .export-import-buttons,
+    .map-selection,
+    .vehicle-import,
+    .mode-selection {
+      background-color: #ffffff;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .export-import-buttons button,
+    .vehicle-import button,
+    .mode-selection button {
+      width: 100%;
+      margin: 5px 0;
+      font-size: 16px;
+      padding: 10px;
+    }
+
+    select {
+      display: block;
+      width: 100%;
+      margin: 5px 0;
+      padding: 5px;
+      font-size: 16px;
+    }
+
+    .canvas-container {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .mode-selection {
+      display: flex;
+      flex-direction: column;
+      background-color: #ffffff;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+    }
+
+    .mode-selection button {
+      margin: 5px 0;
+      width: 100%;
+      font-size: 18px;
+      padding: 15px 20px;
+    }
+
+    .table-btn {
+      font-size: 14px;
+      padding: 5px 10px;
+    }
+
+    .popup {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+    }
+
+    .info-table {
+      width: 350px;
+      background-color: #0E356E;
+      padding: 3px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border: none;
+      margin-bottom: 10px;
+    }
+
+    .info-table td {
+      color: white;
+      padding: 5px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .info-table input {
+      width: 80%;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .info-table input:disabled {
+      background-color: #f0f0f0;
+      color: #666;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f0f0f0;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      margin: 5px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
+      transform: translateY(-2px);
+    }
+
+    button.active {
+      background-color: #2196F3;
+    }
+
+    .btn-cancel,
+    .btn-update,
+    .btn-delete {
+      color: #ffffff;
+      transition: background-color 0.3s ease, transform 0.2s;
+    }
+
+    .btn-update:hover {
+      background-color: #FFC107;
+      transform: scale(1.05);
+    }
+
+    .btn-delete:hover {
+      background-color: #F44336;
+      transform: scale(1.05);
+    }
+
+    canvas {
+      border: 2px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .confirmation-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+    }
+
+    .confirmation-dialog button {
+      margin: 0 10px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      margin-bottom: 10px;
+    }
+
+    .export-import-buttons {
+      position: fixed;
+      top: 20px;
+      right: 40px;
+      display: flex;
+      flex-direction: column;
+      background-color: #ffffff;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .export-import-buttons button {
+      margin: 5px 0;
+      width: 100%;
+      font-size: 18px;
+      padding: 15px 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div class="container">
+      <div class="main-content">
+        <div class="canvas-container">
+          <canvas ref="canvas" width="1000" height="700" @mouseup="handleMouseUp" @click="handleCanvasClick"
+            @dblclick="handleDoubleClick" @mousemove="handleMouseMove" @mousedown="handleImageMouseDown"
+            @wheel="handleWheel">
+            Your browser does not support the HTML5 canvas tag.
+          </canvas>
+        </div>
+
+        <div class="sidebar">
+          <!--<div class="export-import-buttons">
+            <button @click="exportCSV">匯出</button>
+            <button @click="importCSV">匯入</button>
+            <input type="file" ref="fileInput" style="display: none;" @change="handleFileUpload">
+          </div> --->
+
+          <div class="map-selection">
+            <label for="map-select">地圖：</label>
+            <select id="map-select" v-model="selectedMap" @change="changeMap">
+              <option value="1F">1F</option>
+              <option value="4F">4F</option>
+            </select>
+          </div>
+
+          <div class="vehicle-import">
+            <label for="vehicle-select">車體：</label>
+            <select id="vehicle-select" v-model="selectedVehicle">
+              <option value="4">4影像車</option>
+              <option value="5">5環境量測</option>
+            </select>
+            <button @click="importVehicle">讀取</button>
+            <button @click="Write2Vehicle" :disabled="loading">{{buttonLabel }}</button>
+          </div>
+
+
+          <div class="mode-selection">
+
+            <button :class="{ active: currentMode === 'addMode' }" @click="setCurrentMode('addMode')">畫線</button>
+			<button  @click="downloadPDF">說明</button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="showPopup" class="popup">
+        <div v-if="addingPoint">
+          <table class="info-table">
+            <tr>
+              <td colspan="2">新增點</td>
+            </tr>
+            <tr>
+              <td><label for="tag-id">Tag_ID</label></td>
+              <td><input type="text" id="tag-id" v-model="newPoint.tagID" @keydown.stop></td>
+            </tr>
+            <tr>
+              <td><label for="tag-name">Tag_Name</label></td>
+              <td><input type="text" id="tag-name" v-model="newPoint.tagName" @keydown.stop></td>
+            </tr>
+            <tr>
+              <td><label for="x-coordinate">X 座標(mm)</label></td>
+              <td><input type="number" id="x-coordinate" v-model.number="newPoint.x" @keydown.stop></td>
+            </tr>
+            <tr>
+              <td><label for="y-coordinate">Y 座標(mm)</label></td>
+              <td><input type="number" id="y-coordinate" v-model.number="newPoint.y" @keydown.stop></td>
+            </tr>
+            <tr>
+              <td><label for="floor">樓層</label></td>
+              <td><input type="text" id="floor" v-model="newPoint.floor" :value="floor" @keydown.stop></td>
+            </tr>
+            <tr>
+              <td><label for="floorid">樓層編號</label></td>
+              <td><input type="text" id="floorid" v-model="newPoint.floorid" :value="floorid" @keydown.stop></td>
+            </tr>
+            <tr>
+              <td><strong>MFG_tag</strong></td>
+              <td><input type="number" v-model="newPoint.MFG_tag" @keydown.stop></td>
+            </tr>
+            <tr>
+              <td><strong>退避點</strong></td>
+              <td><input type="number" v-model="newPoint.Retreat_Flag" @keydown.stop></td>
+            </tr>
+            <tr>
+              <td><strong>迴轉</strong></td>
+              <td><input type="number" v-model="newPoint.PositionNotice" @keydown.stop></td>
+            </tr>
+            <tr>
+
+              <td colspan="2">
+                <button class="table-btn btn btn-delete" @click="cancelAddPoint">取消</button>
+                <button class="table-btn" @click="confirmAddPoint">確認新增</button>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div v-if="currentMode === 'addMode' && pathPoints.length === 2">
+          <table class="info-table">
+            <tr>
+              <td colspan="2">新增路徑</td>
+            </tr>
+            <tr>
+              <td><strong>起點Tag_ID</strong></td>
+              <td>{{ pathPoints[0].tagID }}</td>
+            </tr>
+            <tr>
+              <td><strong>終點Tag_ID</strong></td>
+              <td>{{ pathPoints[1].tagID }}</td>
+            </tr>
+
+            <tr>
+              <td><label for="path-speed">順行障礙物</label></td>
+              <td><input type="text" id="path-Forward_Sensor" v-model="newPath.Forward_Sensor" value="M1" @keydown.stop>
+              </td>
+
+            </tr>
+            <tr>
+              <td><label for="path-speed">順行速度</label></td>
+              <td><input type="number" id="path-Forward_Speed" v-model.number="newPath.Forward_Speed" value="5" min="0"
+                  step="5" @keydown.stop></td>
+
+            </tr>
+            <tr>
+              <td><label for="path-speed">逆行障礙物</label></td>
+              <td><input type="text" id="path-backward_Sensor" v-model="newPath.backward_Sensor" value="M1"
+                  @keydown.stop></td>
+            </tr>
+            <tr>
+              <td><label for="path-speed">逆行速度</label></td>
+              <td><input type="number" id="path-backward_Speed" v-model.number="newPath.backward_Speed" value="5"
+                  min="0" step="5" @keydown.stop></td>
+            </tr>
+            <tr>
+              <td><label for="path-FORK_BACK">車種</label></td>
+              <td><input type="text" id="path-path_type" v-model="newPath.path_type" @keydown.stop></td>
+            </tr>
+            <tr>
+              <td><label for="path-FORK_BACK">Fork後退</label></td>
+              <td><input type="number" id="path-FORK_BACK" v-model="newPath.FORK_BACK" @keydown.stop></td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <button class="table-btn btn btn-delete" @click="cancelAddPath">取消</button>
+                <button class="table-btn" @click="confirmAddPath">確認新增</button>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div v-if="selectedPoint || selectedPath">
+          <div v-if="selectedPoint">
+            <table class="info-table">
+              <tr>
+                <td colspan="2">點資訊</td>
+              </tr>
+              <tr>
+                <td><strong>Tag_ID</strong></td>
+                <td><input type="text" v-model="selectedPoint.tagID" @keydown.stop></td>
+              </tr>
+              <tr>
+                <td><strong>X 座標(mm)</strong></td>
+                <td><input type="number" v-model.number="selectedPoint.x" @keydown.stop>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Y 座標(mm)</strong></td>
+                <td><input type="number" v-model.number="selectedPoint.y" @keydown.stop>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>樓層</strong></td>
+                <td><input type="text" v-model="selectedPoint.floor" @keydown.stop></td>
+              </tr>
+              <tr>
+                <td><strong>樓層編號</strong></td>
+                <td><input type="number" v-model="selectedPoint.floorid" @keydown.stop></td>
+              </tr>
+              <tr>
+                <td><strong>MFG_tag</strong></td>
+                <td><input type="number" v-model="selectedPoint.MFG_tag" @keydown.stop></td>
+              </tr>
+              <tr>
+                <td><strong>退避點</strong></td>
+                <td><input type="number" v-model="selectedPoint.Retreat_Flag" @keydown.stop></td>
+              </tr>
+              <tr>
+                <td><strong>迴轉</strong></td>
+                <td><input type="number" v-model="selectedPoint.PositionNotice" @keydown.stop></td>
+              </tr>
+              <tr>
+                <td colspan="2">
+                  <button class="table-btn btn-delete" @click="deletePoint(selectedPoint)">刪除</button>
+
+                  <button class="table-btn btn-update" @click="confirmPointEdit">修改</button>
+
+                </td>
+              </tr>
+            </table>
+
+          </div>
+        </div>
+
+        <div v-if="selectedPath">
+          <table class="info-table">
+            <tr>
+              <td colspan="2">路徑資訊</td>
+            </tr>
+            <tr>
+              <td><strong>起點 Tag_ID</strong></td>
+              <td>{{ selectedPath.From_Point }}</td>
+            </tr>
+            <tr>
+              <td><strong>終點 Tag_ID</strong></td>
+              <td>{{ selectedPath.To_Point }}</td>
+            </tr>
+            <tr>
+              <td><label for="path-speed">順行障礙物</label></td>
+              <td><input type="text" id="path-Forward_Sensor" v-model="selectedPath.Forward_Sensor" value="M1"
+                  @keydown.stop>
+              </td>
+
+            </tr>
+            <tr>
+              <td><label for="path-speed">順行速度</label></td>
+              <td><input type="number" id="path-Forward_Speed" v-model.number="selectedPath.Forward_Speed" value="5"
+                  min="0" step="5" @keydown.stop></td>
+
+            </tr>
+            <tr>
+              <td><label for="path-speed">逆行障礙物</label></td>
+              <td><input type="text" id="path-backward_Sensor" v-model="selectedPath.backward_Sensor" value="M1"
+                  @keydown.stop></td>
+            </tr>
+            <tr>
+              <td><label for="path-speed">逆行速度</label></td>
+              <td><input type="number" id="path-backward_Speed" v-model.number="selectedPath.backward_Speed" value="5"
+                  min="0" step="5" @keydown.stop></td>
+            </tr>
+            <tr>
+              <td><label for="path-FORK_BACK">車種</label></td>
+              <td><input type="text" id="path-path_type" v-model="selectedPath.path_type" @keydown.stop></td>
+            </tr>
+            <tr>
+              <td><label for="path-FORK_BACK">Fork後退</label></td>
+              <td><input type="number" id="path-FORK_BACK" v-model="selectedPath.FORK_BACK" @keydown.stop></td>
+            </tr>
+            <tr>
+              <td colspan="2">
+
+                <button class="table-btn btn btn-delete" @click="deletePath(selectedPath)">刪除</button>
+                <button class="table-btn btn btn-update" @click="editPath(selectedPath)">修改</button>
+
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div v-if="isConfirmingDelete" class="confirmation-dialog">
+        <p>{{ deleteType === 'point' ? '是否要刪除此點？ (相關路徑也會跟著刪除喔！)' : '是否要刪除此路徑？' }}</p>
+        <button @click="cancelDelete">取消</button>
+        <button @click="confirmDelete">確認</button>
+      </div>
+      <div v-if="isConfirmingPointEdit" class="confirmation-dialog">
+        <p>是否要將點移動到新位置？</p>
+        <button @click="cancelPointMove">取消</button>
+        <button @click="confirmPointMove">確認</button>
+      </div>
+
+    </div>
+   
+  </div>
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        context: null,
+        currentMode: 'clickMode',
+        points: [],
+        selectedPoint: null,
+        addingPoint: false,
+        defaultTagID: '',
+        floor: '1F',
+        floorid: 2,
+        newPoint: {},
+        pathPoints: [],
+        newPath: {
+          endX: 0,
+          endY: 0,
+          Forward_Sensor: 'M1',
+          Forward_Speed: 5,
+          backward_Sensor: 'M1',
+          backward_Speed: 5,
+          path_type: '',
+          FORK_BACK: 0,
+        },
+        paths: [],
+        selectedPath: null,
+
+        isEditingPath: false,
+        originalPoint: {},
+        originalPath: {},
+
+        isDragging: false,
+        dragPoint: null,
+
+        image: null,
+        imageX: 0,
+        imageY: 0,
+        imageW: 0,
+        imageH: 0,
+        scale: 1,
+        imageScale: 0.35,
+        imageOffsetX: -1200,
+        imageOffsetY: -650,
+        isDraggingImage: false,
+        isDraggingPoint: false,
+        lastMouseX: 0,
+        lastMouseY: 0,
+        isConfirmingPointEdit: false,
+        tempPoint: null,
+        isConfirmingDelete: false,
+        deleteTarget: null,
+        deleteType: '',
+        showPopup: false,
+
+        pathStartPoint: null,
+        tempPath: null,
+        selectedMap: '1F',
+        selectedVehicle: '4',
+        mapImage:
+        {
+          '1F': '.\\img\\MAP1F.png',
+          '4F': '.\\img\\MAP4F.png',
+        },
+        hoveredPath: null,
+        hoveredPoint: null,
+        timeout: null,
+        doubleClickDelay: 300,
+        tempNewPoint: null,
+        isPointConfirmed: false,
+        confirmedPoint: null,
+        buttonLabel: '寫入',
+        loading: false,
+        WriteTimeout: 0,
+        isSelectPoints: false,
+        selectedPoints: [],
+        SelectMouseX: 0,
+        SelectMouseY: 0,
+        SelectMouseX2: 0,
+        SelectMouseY2: 0,
+        
+
+      },
+      computed: {
+        isChecked: {
+          get() {
+            return this.selectedPoint.PositionNotice === "1";
+          },
+          set(value) {
+            this.selectedPoint.PositionNotice = value ? 1 : 0;
+          }
+        }
+      },
+      mounted() {
+        this.context = this.$refs.canvas.getContext('2d');
+        this.loadImage();
+        this.defaultTagID = this.getNextTagID();
+        this.LoadPoints();
+
+        this.$refs.canvas.width = window.innerWidth * 0.8;
+        this.$refs.canvas.height = window.innerHeight * 0.8;
+
+        window.addEventListener('resize', this.handleResize);
+        window.addEventListener('keydown', this.handleKeyPress);
+      },
+      methods: {
+        getNextTagID() {
+          const maxID = Math.max(...this.points.map(point => parseInt(point.tagID, 10)), 0);
+          return (maxID + 1).toString().padStart(4, '0');
+        },
+        changeMap() {
+          this.image.src = this.mapImage[this.selectedMap];
+          if (this.selectedMap === '1F') {
+            this.floor = '1F';
+            this.floorid = 2;
+          } else if (this.selectedMap === '4F') {
+            this.floor = '4F';
+            this.floorid = 5;
+          }
+          this.image.onload = () => {
+            this.clearCanvas();
+            this.drawImage();
+            this.LoadPoints()
+          };
+        },
+        loadImage() {
+          this.image = new Image();
+          this.image.src = this.mapImage[this.selectedMap];
+          this.image.onload = () => {
+            this.imageX = (this.$refs.canvas.width - this.image.width) / 2;
+            this.imageY = (this.$refs.canvas.height - this.image.height) / 2;
+            this.drawImage();
+          };
+        },
+        LoadPoints() {
+          this.points = [];
+          this.paths = [];
+          fetch('./js/QueryPoint.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ floor_no: this.floorid })
+          })
+            .then(response => response.json())
+            .then(data => {
+              //console.log(data)
+              this.points = data.Points
+              this.paths = data.Paths
+              this.clearCanvas();
+              this.redrawPoints();
+              this.redrawPaths();
+            })
+        },
+        drawImage() {
+          if (this.image) {
+            const scaledWidth = this.image.width * this.imageScale;
+            const scaledHeight = this.image.height * this.imageScale;
+            this.imageW = this.image.width
+            this.imageH = this.image.height
+            this.context.drawImage(
+              this.image,
+              this.imageOffsetX,
+              this.imageOffsetY,
+              scaledWidth,
+              scaledHeight
+            );
+          }
+        },
+        setCurrentMode(mode) {
+
+          this.cleanupCurrentMode();
+          console.log(mode)
+
+          if (this.currentMode === 'addMode') {
+            this.currentMode = 'clickMode'
+          }
+          else {
+            this.currentMode = mode
+          }
+
+          this.showPopup = false;
+        },
+        cleanupCurrentMode() {
+          this.selectedPoint = null;
+          this.selectedPath = null;
+          this.addingPoint = false;
+
+
+          this.pathPoints = [];
+          this.tempPath = null;
+          this.isConfirmingPointEdit = false;
+          this.isConfirmingDelete = false;
+          this.showPopup = false;
+
+
+          this.clearCanvas();
+          this.redrawPoints();
+          this.redrawPaths();
+        },
+        handleDoubleClick(event) {
+          console.log(event)
+          //新增
+
+          const mouseX = Math.round(((event.offsetX - this.imageOffsetX) / this.imageScale - 4096) * 100);
+          const mouseY = Math.round(((event.offsetY - this.imageOffsetY) / this.imageScale - 4096) * (-100));
+
+          this.showPopup = true;
+          this.addingPoint = true;
+          this.newPoint.x = mouseX;
+          this.newPoint.y = mouseY;
+          this.newPoint.PositionNotice = 1;
+          this.selectedPoint = null
+
+          this.selectedPath = null;
+          this.startNewPoint(mouseX, mouseY);
+          this.confirmPointPosition(mouseX, mouseY);
+        },
+        handleCanvasClick(event) {
+          console.log('handleCanvasClick1')
+          if (this.isDraggingPoint) {
+            this.isDraggingPoint = false;
+            return;
+          }
+          console.log('handleCanvasClick2')
+          if (this.isSelectPoints) {
+
+            this.isSelectPoints = false;
+            return;
+          }
+
+          console.log('handleCanvasClick4')
+          if (this.timeout) {
+            console.log(-1)
+            clearTimeout(this.timeout);
+            this.timeout = null;
+            return;
+          }
+          console.log('handleCanvasClick5')
+          offsetX = event.offsetX
+          offsetY = event.offsetY
+          // 防止触发双击事件时同时触发单击事件 250ms內雙擊就取消
+          this.timeout = setTimeout(() => {
+
+            const mouseX = Math.round(((offsetX - this.imageOffsetX) / this.imageScale - 4096) * 100);
+            const mouseY = Math.round(((offsetY - this.imageOffsetY) / this.imageScale - 4096) * (-100));
+            console.log(1)
+
+            //this.cleanupPreviousState();
+            /*     this.showPopup = false; 關閉顯示
+                 this.isEditingPath = false; 編輯路徑
+                this.isConfirmingPointEdit = false;  確認點位編輯
+                this.isConfirmingDelete = false;*/
+
+            /*if (this.selectedPoint && this.isDragging === false) {
+              //拖移
+        
+              console.log(3)
+              this.isDragging = true; //開始拖移點位
+              this.dragPoint = this.selectedPoint;
+            } else */
+
+            if (this.currentMode === 'clickMode') {
+              console.log(5.1)
+              if (this.hoveredPoint) {
+
+                //console.log(this.hoveredPoint)
+                console.log(5)
+                this.selectedPoint = { ...this.hoveredPoint };
+                this.addingPoint = false;
+                this.tempNewPoint = null
+                this.selectedPath = null;
+                this.showPopup = true;
+                this.clearCanvas();
+                this.redrawPoints();
+                this.redrawPaths();
+                //this.drawPoint(this.hoveredPoint.x, this.hoveredPoint.y, 'green');
+              }
+              else if (this.hoveredPath) {
+                console.log(6)
+                this.selectedPath = this.hoveredPath;
+                //this.selectedPoint = null;
+                this.showPopup = true;
+                this.clearCanvas();
+                this.redrawPoints();
+                this.redrawPaths();
+                this.highlightPath(this.hoveredPath);
+
+
+              }
+              else {
+                console.log(7)
+                this.tempNewPoint = null
+                this.selectedPoint = null;
+                this.selectedPath = null;
+                this.showPopup = false;
+                this.addingPoint = false;
+                this.selectedPoints = []
+                this.clearCanvas();
+                this.redrawPoints();
+                this.redrawPaths();
+              }
+              //this.selectNearestPoint(mouseX, mouseY);
+            } else if (this.currentMode === 'addMode') {
+              console.log(8)
+              //畫線
+              this.addPathPoint(mouseX, mouseY);
+
+            }
+            console.log(9)
+            clearTimeout(this.timeout);
+            this.timeout = null;
+          }, 250)
+          console.log(0)
+        },
+        startNewPoint(x, y) {
+          const nextTagID = this.getNextTagID();
+          //console.log(nextTagID)
+          this.tempNewPoint = {
+            x: x,
+            y: y,
+            z: 0,
+            tagID: nextTagID,
+            tagName: nextTagID,
+            floor: this.floor,
+            floorid: this.floorid,
+            PositionNotice: 1,
+            MFG_tag: 0,
+            Retreat_Flag: 0,
+            shelf_car_type: '',
+          };
+          this.redrawAll();
+        },
+
+        confirmPointPosition(x, y) {
+          this.confirmedPoint = { x, y };
+          this.newPoint = {
+            x: x,
+            y: y,
+            z: 0,
+            tagID: this.getNextTagID(),
+            tagName: this.getNextTagID(),
+            floor: this.floor,
+            floorid: this.floorid,
+            PositionNotice: 0,
+            MFG_tag: 0,
+            Retreat_Flag: 0,
+            shelf_car_type: 0,
+          };
+          this.addingPoint = true;
+          this.showPopup = true;
+          this.redrawAll();
+        },
+        confirmNewPoint() {
+          this.newPoint = {
+            ...this.tempNewPoint,
+            x: this.confirmedPoint.x,
+            y: this.confirmedPoint.y
+          };
+          this.tempNewPoint = null;
+          this.confirmedPoint = null;
+          this.addingPoint = true;
+          this.showPopup = true;
+          this.redrawAll();
+        },
+        addNewPoint(x, y) {
+          this.addingPoint = true;
+          const nextTagID = this.getNextTagID();
+          this.newPoint = {
+            x: x,
+            y: y,
+            tagID: nextTagID,
+            tagName: nextTagID,
+            floor: this.floor,
+            floorid: this.floorid,
+            PositionNotice: 0
+          };
+          this.drawPoint(x, y, 'red');
+          this.showPopup = true;
+        },
+        highlightPath(path, color = 'red', lineWidth = 3) {
+
+          const startX = this.imageOffsetX + (path.FromX / 100 + 4096) * this.imageScale;
+          const startY = this.imageOffsetY + (4096 - path.FromY / 100) * this.imageScale;
+          const endX = this.imageOffsetX + (path.ToX / 100 + 4096) * this.imageScale;
+          const endY = this.imageOffsetY + (4096 - path.ToY / 100) * this.imageScale;
+          this.context.beginPath();
+          this.context.moveTo(startX, startY);
+          this.context.lineTo(endX, endY);
+          this.context.strokeStyle = color;
+          this.context.lineWidth = lineWidth;
+          this.context.stroke();
+        },
+        distanceToPath(mx, my, path) {
+          //if (!path || !path.FromX || !path.FromY || !path.ToX || !path.ToY) {
+          //return Infinity;
+          //}
+          //console.log(x,y)
+          const x = mx * 1.0;
+          const y = my * 1.0;
+          const x1 = path.FromX * 1.0;
+          const y1 = path.FromY * 1.0;
+          const x2 = path.ToX * 1.0;
+          const y2 = path.ToY * 1.0;
+
+          const A = x - x1;
+          const B = y - y1;
+          const C = x2 - x1;
+          const D = y2 - y1;
+
+          const dot = A * C + B * D;
+          const len_sq = C * C + D * D;
+          let param = -1;
+          if (len_sq != 0) param = dot / len_sq;
+
+          let xx, yy;
+
+          if (param < 0) {
+            xx = x1;
+            yy = y1;
+          } else if (param > 1) {
+            xx = x2;
+            yy = y2;
+          } else {
+            xx = x1 + param * C;
+            yy = y1 + param * D;
+          }
+
+          const dx = x - xx;
+          const dy = y - yy;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        cleanupPreviousState() {
+          this.showPopup = false;
+
+          this.isConfirmingPointEdit = false;
+          this.isConfirmingDelete = false;
+        },
+        confirmAddPoint() {
+          if (this.newPoint.tagID === '' || this.newPoint.tagName === '' || this.newPoint.x === 0 || this.newPoint.y === 0 || this.newPoint.floor === '' || this.newPoint.floorid === '') {
+            alert('請填寫所有必填欄位！');
+            return;
+          }
+          if (this.confirmedPoint) {
+            this.newPoint.x = this.confirmedPoint.x;
+            this.newPoint.y = this.confirmedPoint.y;
+          }
+          
+			this.UpdatePoint(this.newPoint)
+          this.resetNewPoint();
+
+        },
+        cancelAddPoint() {
+          this.resetNewPoint();
+          this.clearCanvas();
+          this.redrawPoints();
+          this.redrawPaths();
+          this.showPopup = false;
+          this.setCurrentMode('clickMode');
+        },
+        resetNewPoint() {
+          this.newPoint = {
+            x: undefined,
+            y: undefined,
+            tagID: '',
+            tagName: '',
+            floor: '',
+            floorid: '',
+            PositionNotice: 0
+          };
+          this.addingPoint = false;
+          this.showPopup = false;
+          this.tempNewPoint = null;
+          this.confirmedPoint = null;
+        },
+        drawPoint(x, y, color = 'blue') {
+          const canvasX = this.imageOffsetX + (x / 100 + 4096) * this.imageScale;
+          const canvasY = this.imageOffsetY + (4096 - y / 100) * this.imageScale;
+          //console.log(canvasX,canvasY)
+          this.context.beginPath();
+          this.context.arc(canvasX, canvasY, 6, 0, Math.PI * 2);
+          this.context.fillStyle = color;
+          this.context.fill();
+          this.context.strokeStyle = 'white';
+          this.context.lineWidth = 2;
+          this.context.stroke();
+
+          if (this.hoveredPoint && this.hoveredPoint.x === x && this.hoveredPoint.y === y) {
+            //畫出被選中的點
+            this.context.beginPath();
+            this.context.arc(canvasX, canvasY, 10, 0, Math.PI * 2);
+            this.context.strokeStyle = 'yellow';
+            this.context.lineWidth = 3;
+            this.context.stroke();
+          }
+
+          const tagID = this.points.find(point => point.x === x && point.y === y)?.tagID;
+          if (tagID) {
+            this.context.font = '12px Arial';
+            this.context.fillStyle = 'white';
+            this.context.strokeStyle = 'black';
+            this.context.lineWidth = 3;
+            this.context.strokeText(`${tagID}`, canvasX + 10, canvasY - 10);
+            this.context.fillText(`${tagID}`, canvasX + 10, canvasY - 10);
+          }
+        },
+        addPathPoint(mouseX, mouseY) {
+          let clickedPoint = null;
+          const clickThreshold = 1000 / this.imageScale;
+          console.log("addPathPoint", mouseX, mouseY)
+          for (const point of this.points) {
+
+            if (Math.abs(point.x - mouseX) <= clickThreshold && Math.abs(point.y - mouseY) <= clickThreshold) {
+              clickedPoint = point;
+              console.log(point)
+              break;
+            }
+          }
+
+          if (clickedPoint) {
+            if (this.pathPoints.length === 0) {
+              this.pathStartPoint = clickedPoint;
+              this.drawPoint(clickedPoint.x, clickedPoint.y, 'red');
+              this.pathPoints.push(clickedPoint);
+            }
+            else if (this.pathPoints.length === 2) {
+              //this.pathPoints={};
+              this.cancelAddPath();
+              this.pathStartPoint = clickedPoint;
+              this.drawPoint(clickedPoint.x, clickedPoint.y, 'red');
+              this.pathPoints.push(clickedPoint);
+            } else if (this.pathPoints.length === 1) {
+
+              if (clickedPoint.tagID !== this.pathStartPoint.tagID) {
+                this.pathPoints.push(clickedPoint);
+                this.tempPath = {
+                  From_Point: this.pathStartPoint.tagID,
+                  FromX: this.pathStartPoint.x,
+                  FromY: this.pathStartPoint.y,
+                  To_Point: clickedPoint.tagID,
+                  ToX: clickedPoint.x,
+                  ToY: clickedPoint.y,
+                  Forward_Sensor: 0,
+                  Forward_Speed: 0,
+                  backward_Sensor: 0,
+                  backward_Speed: 0,
+                  path_type: '',
+                  FORK_BACK: 0,
+                };
+                this.drawDashedLine(this.pathStartPoint.x, this.pathStartPoint.y, clickedPoint.x, clickedPoint.y);
+                this.showPopup = true;
+              } else {
+                this.clearPathPreview();
+                alert("起點與終點不能是同一個點，請重新繪製。");
+              }
+            }
+
+
+            //this.showFeedback(clickedPoint.x, clickedPoint.y, 'green');
+          } else {
+
+            this.cancelAddPath();
+            //this.showFeedback(mouseX, mouseY, 'red');
+          }
+        },
+        showFeedback(x, y, color) {
+          const canvasX = this.imageOffsetX + (x / 100 + 4096) * this.imageScale;
+          const canvasY = this.imageOffsetY + (4096 - y / 100) * this.imageScale;
+
+          this.context.beginPath();
+          this.context.arc(canvasX, canvasY, 8, 0, Math.PI * 2);
+          this.context.fillStyle = color;
+          this.context.globalAlpha = 0.5;
+          this.context.fill();
+          this.context.globalAlpha = 1;
+
+          setTimeout(() => {
+            this.clearCanvas();
+            this.redrawPoints();
+            this.redrawPaths();
+            if (this.pathStartPoint) {
+              this.drawPoint(this.pathStartPoint.x, this.pathStartPoint.y, 'red');
+            }
+          }, 300);
+        },
+        clearPathPreview() {
+          this.pathStartPoint = null;
+          this.pathPoints = [];
+          this.tempPath = null;
+          this.clearCanvas();
+          this.redrawPoints();
+          this.redrawPaths();
+        },
+        confirmAddPath() {
+          if (this.tempPath) {
+            // const path = {
+            //   start: this.tempPath.start,
+            //   end: this.tempPath.end,
+            //   speed: this.newPath.speed
+            // };
+            const path = {
+              From_Point: this.tempPath.From_Point,
+              To_Point: this.tempPath.To_Point,
+              FromX: this.tempPath.FromX,
+              FromY: this.tempPath.FromY,
+              ToX: this.tempPath.ToX,
+              ToY: this.tempPath.ToY,
+              Forward_Speed: this.newPath.Forward_Speed,
+            };
+            //新增路徑
+            this.newPath.From_Point = this.tempPath.From_Point
+            this.newPath.To_Point = this.tempPath.To_Point
+            console.log(this.newPath)
+            fetch('./js/UpdatePoint.php', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                CmdType: 'ADDPATH',
+                Path: this.newPath
+              })
+            })
+              .then(response => response.json())
+              .then(data => {
+                console.log(data)
+                this.LoadPoints();
+
+              })
+            // this.currentMode = "clickMode"
+            this.paths.push(path);
+            this.clearPathPreview();
+            this.redrawAll();
+            //this.showPopup = false;
+            /*this.paths.push(path);
+
+            this.clearPathPreview();
+            this.clearCanvas();
+            this.redrawPoints();
+            this.redrawPaths();
+            this.showPopup = false;*/
+          }
+        },
+        cancelAddPath() {
+          this.clearPathPreview();
+          this.showPopup = false;
+        },
+        showPointInfo(mouseX, mouseY) {
+          for (const point of this.points) {
+            if (Math.abs(point.x - mouseX) <= 3 && Math.abs(point.y - mouseY) <= 3) {
+              this.selectedPoint = {
+                ...point,
+                x: Number(point.x.toFixed(1)),
+                y: Number(point.y.toFixed(1))
+              };
+              this.selectedPath = null;
+              this.clearCanvas();
+              this.redrawPoints();
+              this.redrawPaths();
+
+              this.showPopup = true;
+              return;
+            }
+          }
+          this.selectedPoint = null;
+          this.selectedPath = null;
+          this.showPopup = false;
+        },
+        getRelatedPaths(point) {
+          if (!point || !point.tagID) return [];
+          return this.paths.filter(path => {
+            //console.log('From_Point:', path.From_Point, 'To_Point:', path.To_Point, 'tagID:', point.tagID);
+            return path.From_Point === point.tagID || path.To_Point === point.tagID;
+          });
+        },
+        deletePoint(pointToDelete) {
+          this.isConfirmingDelete = true;
+          this.deleteTarget = pointToDelete;
+          this.deleteType = 'point';
+        },
+        deletePath(pathToDelete) {
+          this.isConfirmingDelete = true;
+          this.deleteTarget = pathToDelete;
+          this.deleteType = 'path';
+        },
+        clearCanvas() {
+          this.context.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+          this.drawImage();
+        },
+        redrawPoints() {
+          for (const point of this.points) {
+            if (point && point.x !== undefined && point.y !== undefined) {
+
+
+              this.drawPoint(point.x, point.y);
+
+
+            }
+          }
+          for (const point of this.selectedPoints) {
+            if (point && point.x !== undefined && point.y !== undefined) {
+              this.drawPoint(point.x, point.y, "red");
+            }
+          }
+
+
+          if (this.selectedPoint)
+            this.drawPoint(this.selectedPoint.x, this.selectedPoint.y, "red");
+          if (this.tempNewPoint)
+            this.drawPoint(this.tempNewPoint.x, this.tempNewPoint.y, "red");
+        },
+        drawDashedLine(x1, y1, x2, y2) {
+          const canvasX1 = this.imageOffsetX + (x1 / 100 + 4096) * this.imageScale;
+          const canvasY1 = this.imageOffsetY + (4096 - y1 / 100) * this.imageScale;
+          const canvasX2 = this.imageOffsetX + (x2 / 100 + 4096) * this.imageScale;
+          const canvasY2 = this.imageOffsetY + (4096 - y2 / 100) * this.imageScale;
+
+          this.context.beginPath();
+          this.context.setLineDash([5, 5]);
+          this.context.moveTo(canvasX1, canvasY1);
+          this.context.lineTo(canvasX2, canvasY2);
+          this.context.strokeStyle = 'gray';
+          this.context.stroke();
+          this.context.setLineDash([]);
+        },
+        redrawPaths() {
+          this.context.beginPath();
+          this.context.strokeStyle = 'black';
+          this.context.lineWidth = 1;
+
+          //console.log('start')
+          for (const path of this.paths) {
+            if (path.From_Point && path.To_Point &&
+              this.points.some(p => p.tagID === path.From_Point) &&
+              this.points.some(p => p.tagID === path.To_Point)) {
+              //console.log(path.From_Point, path.To_Point,path.Forward_Speed)
+              this.drawLine(path.FromX, path.FromY, path.ToX, path.ToY, path.Forward_Speed);
+            }
+          }
+
+          if (this.tempPath) {
+            this.drawDashedLine(this.tempPath.FromX, this.tempPath.FromY, this.tempPath.ToX, this.tempPath.ToY);
+          }
+
+          if (this.hoveredPath) {
+            this.highlightPath(this.hoveredPath, 'red', 2);
+          }
+        }
+        ,
+        drawLine(x1, y1, x2, y2, colorIndex) {
+
+          const canvasX1 = this.imageOffsetX + (x1 / 100 + 4096) * this.imageScale;
+          const canvasY1 = this.imageOffsetY + (4096 - y1 / 100) * this.imageScale;
+          const canvasX2 = this.imageOffsetX + (x2 / 100 + 4096) * this.imageScale;
+          const canvasY2 = this.imageOffsetY + (4096 - y2 / 100) * this.imageScale;
+
+          // 绘制线段
+
+          if (colorIndex == 0) {
+            this.context.strokeStyle = 'black'; // 黑色
+          } else if (colorIndex >= 1 && colorIndex <= 10) {
+            this.context.strokeStyle = 'lightgreen'; // 红色
+          } else if (colorIndex >= 11 && colorIndex <= 20) {
+            this.context.strokeStyle = 'yellow'; // 黄色
+          } else if (colorIndex >= 30) {
+            this.context.strokeStyle = 'orange'; // 绿色
+          }
+
+          this.context.beginPath();
+          this.context.moveTo(canvasX1, canvasY1);
+          this.context.lineTo(canvasX2, canvasY2);
+          this.context.stroke();
+
+          // 计算箭头角度
+          var angle = Math.atan2(canvasY2 - canvasY1, canvasX2 - canvasX1);
+
+          // 绘制箭头头部
+          this.context.beginPath();
+          this.context.moveTo(canvasX2, canvasY2);
+          this.context.lineTo(canvasX2 - 10 * Math.cos(angle - Math.PI / 6), canvasY2 - 10 * Math.sin(angle - Math.PI / 6));
+          this.context.lineTo(canvasX2 - 10 * Math.cos(angle + Math.PI / 6), canvasY2 - 10 * Math.sin(angle + Math.PI / 6));
+          this.context.closePath();
+          this.context.fillStyle = this.context.strokeStyle;
+          this.context.fill();
+        },
+        confirmPointEdit() {
+          if (!this.selectedPoint.tagName ||
+            this.selectedPoint.x === undefined || this.selectedPoint.y === undefined ||
+            !this.selectedPoint.floor || !this.selectedPoint.floorid) {
+            alert('請填寫所有必填欄位！');
+            return;
+          }
+
+         
+		this.UpdatePoint(this.selectedPoint)
+			
+
+
+          this.dragPoint = null;
+          this.originalPoint = {};
+
+          this.showPopup = false;
+        },
+        cancelPointEdit() {
+          if (this.originalPoint) {
+            const index = this.points.findIndex(p => p.tagID === this.originalPoint.tagID);
+            if (index !== -1) {
+              this.points[index] = { ...this.originalPoint };
+              this.selectedPoint = { ...this.originalPoint };
+            }
+          }
+          this.originalPoint = {};
+          this.originalPath = {};
+
+          this.clearCanvas();
+          this.redrawPoints();
+          this.redrawPaths();
+          this.isEditingPointReminder = false;
+          this.showPopup = false;
+        },
+        closePopup() {
+          this.showPopup = false;
+          this.cleanupCurrentMode();
+        }
+
+        ,
+        editPath(Path) {
+
+          fetch('./js/UpdatePoint.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              CmdType: 'ADDPATH',
+              Path
+            })
+          })
+            .then(response => response.text())
+            .then(data => {
+              console.log(data)
+              this.LoadPoints();
+              this.showPopup = false;
+            })
+        }
+        ,
+        handleImageMouseDown(event) {
+          //確認是否可以拖曳圖片
+
+          //if (this.currentMode !== 'clickMode') return;
+          this.lastMouseX = event.offsetX;
+          this.lastMouseY = event.offsetY;
+          if (event.ctrlKey) {
+            this.SelectMouseX = Math.round(((event.offsetX - this.imageOffsetX) / this.imageScale - 4096) * 100);
+            this.SelectMouseY = Math.round(((event.offsetY - this.imageOffsetY) / this.imageScale - 4096) * (-100));
+            this.isSelectPoints = true;
+            return;
+          }
+          if (this.selectedPoint && this.hoveredPoint) {
+
+            if (this.selectedPoint.tagID === this.hoveredPoint.tagID) {
+              this.isDraggingPoint = true;
+              //this.lastMouseX = event.offsetX;
+              //this.lastMouseY = event.offsetY;
+              return;
+            }
+          }
+
+          this.isDraggingImage = true;
+          //this.lastMouseX = event.offsetX;
+          //this.lastMouseY = event.offsetY;
+        },
+        handleMouseMove(event) {
+          //滑鼠移動事件
+          const mouseX = event.offsetX;
+          const mouseY = event.offsetY;
+          const relativeX = Math.round(((mouseX - this.imageOffsetX) / this.imageScale - 4096) * 100);
+          const relativeY = Math.round(((mouseY - this.imageOffsetY) / this.imageScale - 4096) * (-100));
+          if (this.isDraggingPoint) {
+
+            this.selectedPoint.x = relativeX
+            this.selectedPoint.y = relativeY
+            this.redrawAll();
+          }
+          if (this.isSelectPoints) {
+            //console.log(1)
+            this.selectedPoints = []
+            this.SelectMouseX2 = relativeX
+            this.SelectMouseY2 = relativeY
+		
+            for (const point of this.points) {
+              //console.log(this.lastMouseX,this.lastMouseY,mouseX,mouseY)
+
+
+              if (
+                (point.x > this.SelectMouseX && point.x < relativeX || point.x > relativeX && point.x < this.SelectMouseX) &&
+                (point.y > this.SelectMouseY && point.y < relativeY || point.y > relativeY && point.y < this.SelectMouseY)
+              ) {
+                this.selectedPoints.push(point)
+
+              }
+            }
+            this.redrawPoints()
+            //console.log(point)
+
+          }
+          if (this.isDraggingImage && !this.selectedPath) {
+            const dx = mouseX - this.lastMouseX;
+            const dy = mouseY - this.lastMouseY;
+
+            this.imageOffsetX += dx;
+            this.imageOffsetY += dy;
+
+            this.lastMouseX = mouseX;
+            this.lastMouseY = mouseY;
+
+            this.redrawAll();
+          }
+
+          if (this.currentMode === 'clickMode') {
+
+            let hoveredPoint = null;
+            const hoverThreshold = 1000 / this.imageScale;
+
+            for (const point of this.points) {
+              const distance = Math.sqrt(Math.pow(point.x - relativeX, 2) + Math.pow(point.y - relativeY, 2));
+              if (distance <= hoverThreshold) {
+                hoveredPoint = point;
+                break;
+              }
+            }
+
+            if (hoveredPoint !== this.hoveredPoint) {
+              this.hoveredPath = null
+              this.hoveredPoint = hoveredPoint;
+              this.redrawAll();
+            }
+            //JohnLin
+            if (!hoveredPoint) {
+              let nearestPath = null;
+              let minDistance = Infinity;
+              const hoverThreshold = 1000 / this.imageScale;
+              //console.log(hoverThreshold)
+              for (const path of this.paths) {
+                const distance = this.distanceToPath(relativeX, relativeY, path);
+                //console.log(distance,hoverThreshold)
+                if (distance < minDistance && distance <= hoverThreshold) {
+                  minDistance = distance;
+                  nearestPath = path;
+                  //console.log(1,hoverThreshold)
+                }
+              }
+              //console.log(2,nearestPath,hoverThreshold)
+              if (nearestPath !== this.hoveredPath) {
+
+                this.hoveredPath = nearestPath;
+                this.hoveredPoint = null
+                this.redrawAll();
+                if (this.hoveredPath) {
+                  this.highlightPath(this.hoveredPath, 'red', 2);
+                }
+              }
+            }
+
+
+          }
+        },
+        handleMouseUp(event) {
+          if (this.isDraggingImage) {
+            this.isDraggingImage = false;
+          }
+
+        },
+        handleWheel(event) {
+          event.preventDefault();
+          const zoomIntensity = 0.1;
+          const wheel = event.deltaY < 0 ? 1 : -1;
+          const zoom = Math.exp(wheel * zoomIntensity);
+
+          const mouseX = event.offsetX;
+          const mouseY = event.offsetY;
+
+          const canvasMouseX = (mouseX - this.imageOffsetX) / this.imageScale;
+          const canvasMouseY = (mouseY - this.imageOffsetY) / this.imageScale;
+
+          this.imageScale *= zoom;
+
+          this.imageOffsetX = mouseX - canvasMouseX * this.imageScale;
+          this.imageOffsetY = mouseY - canvasMouseY * this.imageScale;
+
+          this.clearCanvas();
+          this.drawImage();
+          this.redrawPoints();
+          this.redrawPaths();
+        },
+        confirmPointMove() {
+          if (this.tempPoint) {
+            const index = this.points.findIndex(p => p.tagID === this.dragPoint.tagID);
+            if (index !== -1) {
+              this.points[index] = { ...this.tempPoint };
+              this.selectedPoint = { ...this.tempPoint };
+
+              this.paths.forEach(path => {
+                if (path.From_Point === this.dragPoint.tagID) {
+                  path.start = { ...this.tempPoint };
+                }
+                if (path.To_Point === this.dragPoint.tagID) {
+                  path.end = { ...this.tempPoint };
+                }
+              });
+            }
+          }
+          this.isConfirmingPointEdit = false;
+
+          this.isDragging = false;
+          this.dragPoint = null;
+          this.tempPoint = null;
+          this.clearCanvas();
+          this.drawImage();
+          this.redrawPoints();
+          this.redrawPaths();
+          this.redrawAll();
+          this.showPopup = true;
+        },
+        cancelPointMove() {
+          this.isConfirmingPointEdit = false;
+
+          this.isDragging = false;
+          this.dragPoint = null;
+          this.tempPoint = null;
+          this.clearCanvas();
+          this.drawImage();
+          this.redrawPoints();
+          this.redrawPaths();
+        },
+        confirmDelete() {
+          if (this.deleteType === 'point') {
+            const deletedPointTagID = this.deleteTarget.tagID;
+            fetch('./js/UpdatePoint.php', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ CmdType: 'DELETE', Tag_ID: deletedPointTagID })
+            })
+              .then(response => response.json())
+              .then(data => {
+
+                this.LoadPoints();
+
+              })
+            this.deleteTarget.tagID
+            this.selectedPoint = null;
+          } else if (this.deleteType === 'path') {
+            fetch('./js/UpdatePoint.php', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ CmdType: 'DELETEPATH', From_Point: this.deleteTarget.From_Point, To_Point: this.deleteTarget.To_Point })
+            })
+              .then(response => response.json())
+              .then(data => {
+                console.log(data)
+                this.LoadPoints();
+
+              })
+          }
+
+          this.isConfirmingDelete = false;
+
+          this.isConfirmingPointEdit = false;
+          this.deleteTarget = null;
+          this.deleteType = '';
+
+          this.redrawAll();
+          this.showPopup = false;
+        },
+		DeletePoint(Tag_ID)
+		{
+			fetch('./js/UpdatePoint.php', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ CmdType: 'DELETE', Tag_ID:Tag_ID  })
+            })
+              
+		},
+		UpdatePoint(Point)
+		{
+			 fetch('./js/UpdatePoint.php', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ CmdType: 'INSERT', Point: Point })
+                  })
+                    .then(response => response.json())
+                    .then(data => {
+                      //console.log(data)
+					  this.selectedPoint=null
+                      this.LoadPoints();
+             })
+		}
+		,
+        redrawAll() {
+          this.clearCanvas();
+          this.drawImage();
+          this.redrawPoints();
+          this.redrawPaths();
+		  
+
+        },
+        cancelDelete() {
+          this.isConfirmingDelete = false;
+          this.deleteTarget = null;
+          this.deleteType = '';
+        },
+        handleResize() {
+          this.$refs.canvas.width = window.innerWidth * 0.8;
+          this.$refs.canvas.height = window.innerHeight * 0.8;
+          this.clearCanvas();
+          this.drawImage();
+          this.redrawPoints();
+          this.redrawPaths();
+        },
+        beforeDestroy() {
+          window.removeEventListener('resize', this.handleResize);
+          window.removeEventListener('keydown', this.handleKeyPress);
+        },
+        exportCSV() {
+          let csvContent = "Tag_ID,Tag_Name,PositionX,PositionY,PositionZ,Floor_ID,Floor_Name,Endpoint1,Endpoint2,Speed1,Speed2\n";
+
+          this.points.forEach(point => {
+            const relatedPaths = this.getRelatedPaths(point);
+            const endpoints = relatedPaths.map(path => path.To_Point);
+            const speeds = relatedPaths.map(path => path.speed);
+
+            csvContent += `${point.tagID},${point.tagName},${point.x},${point.y},0,${point.floorid},${point.floor},${endpoints[0] || ''},${endpoints[1] || ''},${speeds[0] || ''},${speeds[1] || ''}\n`;
+          });
+
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          saveAs(blob, "map_data.csv");
+        },
+        importCSV() {
+          this.$refs.fileInput.click();
+        },
+        handleFileUpload(event) {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const content = e.target.result;
+              this.parseCSV(content);
+            };
+            reader.readAsText(file);
+            //console.log()
+          }
+        },
+        parseCSV(content) {
+          const lines = content.split('\n');
+          const headers = lines[0].split(',');
+
+          this.points = [];
+          this.paths = [];
+
+          let maxTagID = 0;
+
+          for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',');
+            if (values.length === headers.length) {
+              const tagID = parseInt(values[0]);
+              if (tagID > maxTagID) {
+                maxTagID = tagID;
+              }
+
+              const point = {
+                tagID: values[0],
+                tagName: values[1],
+                x: parseFloat(values[2]),
+                y: parseFloat(values[3]),
+                floorid: values[5],
+                floor: values[6]
+              };
+              this.points.push(point);
+
+              if (values[7]) {
+                this.paths.push({
+                  start: point,
+                  end: { tagID: values[7] },
+                  speed: parseFloat(values[9])
+                });
+              }
+              if (values[8]) {
+                this.paths.push({
+                  start: point,
+                  end: { tagID: values[8] },
+                  speed: parseFloat(values[10])
+                });
+              }
+            }
+          }
+          this.defaultTagID = (maxTagID + 1).toString().padStart(4, '0');
+
+          this.paths.forEach(path => {
+            const endPoint = this.points.find(p => p.tagID === path.To_Point);
+            if (endPoint) {
+              path.end = { ...endPoint };
+            }
+          });
+          this.redrawAll();
+        },
+        handleKeyPress(event) {
+          if (event.key === 'Enter') {
+			
+            if (this.addingPoint) {
+              this.confirmAddPoint();
+            } else if (this.currentMode === 'addMode' && this.pathPoints.length === 2) {
+              this.confirmAddPath();
+            }  else if (this.isConfirmingPointEdit) {
+              this.confirmPointMove();
+            } else if (this.isConfirmingDelete) {
+              this.confirmDelete();
+            }else if (this.selectedPoints.length > 0)
+			{
+				this.selectedPoints.forEach(point => this.UpdatePoint(point));
+				this.selectedPoints=[]			
+			}
+          } else if (event.key === 'Escape') {
+            if (this.addingPoint) {
+              this.cancelAddPoint();
+            } else if (this.currentMode === 'addMode' && this.pathPoints.length === 2) {
+              this.cancelAddPath();
+            } else if (this.isConfirmingPointEdit) {
+              this.cancelPointMove();
+            } else if (this.isConfirmingDelete) {
+              this.cancelDelete();
+            }
+          }
+
+          if (this.selectedPoints.length > 0) {
+            if (event.key === 'ArrowUp') {
+              this.selectedPoints.forEach(point => { point.y = parseInt(point.y) + 100 });
+            } else if (event.key === 'ArrowDown') {
+              this.selectedPoints.forEach(point => point.y = parseInt(point.y) - 100);
+            } else if (event.key === 'ArrowLeft') {
+              this.selectedPoints.forEach(point => point.x = parseInt(point.x) - 100);
+            } else if (event.key === 'ArrowRight') {
+              this.selectedPoints.forEach(point => point.x = parseInt(point.x) + 100);
+            }
+            this.redrawAll()
+          }
+        },
+        importVehicle() {
+          //const data = { car: 4};
+          fetch('http://10.37.134.13:8000/GetPoint', {
+            method: 'POST', headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ carno: this.selectedVehicle })
+          })
+            .then(response => response.json())
+            .then(data => {
+              //console.log(data)
+			  //是否刪除舊點位
+				const dataTagIds = data.map(item => parseInt(item.Tag_ID));
+
+				// 找出points中多餘的tagid
+				const extraTagIds = this.points.filter(item => !dataTagIds.includes(parseInt(item.tagID)));
+				console.log(extraTagIds);
+				const extraCount = extraTagIds.length;
+
+				// 如果有多餘的點位，顯示確認視窗
+				if (extraCount > 0) {
+					const shouldDelete = confirm(`是否要刪除 ${extraCount} 個多餘的點位？`);
+
+					if (shouldDelete) {
+						// 刪除多餘的點位的程式碼放在這裡
+						extraTagIds.forEach(point=>{
+						this.DeletePoint(parseInt(point.tagID))
+						
+						})
+						console.log('刪除多餘的點位');
+					} else {
+						console.log('使用者取消刪除多餘的點位');
+					}
+				} else {
+					console.log('沒有多餘的點位');
+				}
+              data.forEach(point => {
+                if (this.floorid === point.floor_no) {
+                  //匯入
+                  let newPoint = {};
+                  newPoint.tagID = point.Tag_ID
+                  newPoint.tagName = point.Tag_ID
+                  newPoint.x = point.X
+                  newPoint.y = point.Y
+                  newPoint.z = point.Z
+                  newPoint.floor = point.floor_no
+                  newPoint.floorid = point.floor_no
+                  newPoint.PositionNotice = point.PositionNotice
+                  newPoint.shelf_car_type = '';
+                  newPoint.Retreat_Flag = 0;
+                  newPoint.MFG_tag = 0;
+                  //console.log(newPoint.x)
+                  //this.points.push({...newPoint})                 
+				   this.UpdatePoint(newPoint) //更新DB
+                }
+              })
+              this.LoadPoints();
+            })
+        },
+		
+        Write2Vehicle() {
+          //const data = { car: 4};
+          var offsetPoints = this.points.map(point => {
+            return {
+              x: parseInt(point.x),
+              y: parseInt(point.y),
+              tagID: point.tagID,
+              tagName: point.tagName,
+              floor: point.floor,
+              floorid: point.floorid,
+              PositionNotice: point.PositionNotice
+            };
+          });
+
+          fetch('http://10.37.134.13:8000/SetPoint', {
+            method: 'POST', headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ carno: this.selectedVehicle, floorid: this.floorid, points: offsetPoints })
+          })
+            .then(response => response.json())
+            .then(data => {
+				console.log(data)
+              //this.sendData()
+            })
+        },
+        async sendData() {
+          /*this.loading = true;
+          this.buttonLabel = '現場確認.' + this.WriteTimeout;
+
+          const response = await fetch('http://10.37.134.13:8000/checkmap'); // 發送資料到API
+
+          let isCompleted = false;
+
+          setInterval(async () => {
+            this.WriteTimeout++
+            this.buttonLabel = '現場確認.' + (80 - this.WriteTimeout);
+            const checkResponse = await fetch('http://10.37.134.13:8000/checkmap'); // 每秒確認回傳值是否完成
+
+            // 假設API回傳值為一個包含{ status: 'completed' }的JSON
+            const result = await checkResponse.json();
+			console.log(result)
+            if (this.WriteTimeout > 80) {
+              isCompleted = true;
+              this.loading = false;
+              this.buttonLabel = '寫入';
+              clearInterval();
+            }
+			console.log(result.bAGVCNeedWritePositionData)
+            if (result.bAGVCWritePositionDataOK == true || result.bAGVCNeedWritePositionData==false ) {
+              isCompleted = true;
+              this.loading = false;
+              this.buttonLabel = '寫入';
+              clearInterval();
+            }
+          }, 3000);*/
+        },
+		    downloadPDF() {
+      // 创建一个空的Blob对象
+			window.open('./info.pdf', '_blank');
+    },
+      },
+    });
+  </script>
+</body>
+
+</html>
